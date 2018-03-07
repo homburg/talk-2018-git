@@ -1,5 +1,6 @@
 {
-  "name": "my-razzle-app",
+  "name": "talk-2018-git",
+  "private": true,
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
