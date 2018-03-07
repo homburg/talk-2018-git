@@ -1,22 +1,36 @@
 .home {
-  margin: 1em;
+  background-color: #333;
+  box-sizing: border-box;
+  padding: 13px;
+  text-align: left;
+  border-radius: 3px;
+  font-size: 16px;
+}
+
+.root {
+  margin-left: -20px;
 }
 
 .tree {
+  text-align: left;
   margin-left: 20px;
   transition: all 200ms linear;
+  color: #aaa;
 }
 
-.add {
-  color: green;
+.tree h4 {
+  margin: 3px;
 }
 
-.remove {
-  color: red;
+.tree.add {
+  color: #53a553;
+}
+
+.tree.remove {
+  color: #e17579;
   text-decoration: line-through;
-  opacity: 0.7;
 }
 
-.modify {
-  color: orange;
+.tree.modify {
+  color: #eea111;
 }

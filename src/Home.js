@@ -113,14 +113,16 @@ class Home extends Component {
   }
   render() {
     return (
-      <div className="Home">
-        {this.state.err && (
-          <div>
-            <h1>Error</h1>
-            <div>{this.state.err}</div>
-          </div>
-        )}
-        <Tree tree={this.state.diff} />
+      <div className="home">
+        <div className="root">
+          {this.state.err && (
+            <div>
+              <h1>Error</h1>
+              <div>{this.state.err}</div>
+            </div>
+          )}
+          <Tree tree={this.state.diff} />
+        </div>
       </div>
     );
   }

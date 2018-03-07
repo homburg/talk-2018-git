@@ -1,9 +1,10 @@
-import App from "./App";
-import React from "react";
-import { StaticRouter } from "react-router-dom";
+// import App from "./App";
+// import React from "react";
+// import { StaticRouter } from "react-router-dom";
 import express from "express";
-import { renderToString } from "react-dom/server";
-import { update, sortBy } from "lodash";
+// import { renderToString } from "react-dom/server";
+import { sortBy } from "lodash";
+import { OrderedMap } from "immutable";
 
 import fs from "fs";
 import path from "path";
@@ -17,42 +18,56 @@ const execAsync = promisify(exec);
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
-async function visitor(obj, p) {
-  if (/node_modules/.test(p)) {
-    return;
+async function makeTree(acc, p, stripPrefix) {
+  if (
+    /node_modules/.test(p) ||
+    /logs/.test(p) ||
+    /description/.test(p) ||
+    /config/.test(p) ||
+    /COMMIT_EDITMSG/.test(p) ||
+    /ORIG_HEAD/.test(p) ||
+    /hooks/.test(p) ||
+    /info/.test(p)
+  ) {
+    return acc;
   }
-  console.log(p);
   const stat = await statAsync(p);
   if (!stat.isDirectory()) {
     try {
       const { stdout } = await execAsync(`sh -c 'git hash-object "${p}"'`);
       const hash = stdout.substring(0, 7);
-      const parts = p.split("/");
+      const parts = p.slice(stripPrefix.length).split("/");
       const [filename, up] =
         parts.length === 1
           ? [parts[0], ["<root>"]]
           : [parts[parts.length - 1], parts.slice(0, -1)];
 
-      update(
-        obj,
+      return acc.updateIn(
         up,
         oldVal =>
-          oldVal ? { ...oldVal, [filename]: hash } : { [filename]: hash }
+          oldVal
+            ? oldVal.set(filename, hash)
+            : new OrderedMap({ [filename]: hash })
       );
     } catch (ignored) {
-      console.error({ ignored });
+      console.error(ignored.message);
+      console.log({ acc });
     }
-    return;
+    return acc;
   }
 
   try {
     const files = await readdirAsync(p);
-    await Promise.all(
-      sortBy(files).map(file => visitor(obj, path.join(p, file)))
-    );
+    const sortedFiles = sortBy(files);
+    let loopAcc = acc;
+    for (let file of sortedFiles) {
+      loopAcc = await makeTree(loopAcc, path.join(p, file), stripPrefix);
+    }
+    return loopAcc;
   } catch (ignored) {
     console.error({ ignored });
   }
+  return acc;
 }
 
 const server = express();
@@ -60,17 +75,21 @@ server
   .disable("x-powered-by")
   .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
   .get("/api", async (req, res) => {
-    const obj = {};
-    await visitor(obj, "../../hello-git");
-    res.json(obj);
+    const tree = await makeTree(
+      new OrderedMap({}),
+      "../../hello-git",
+      "../../hello-git"
+    );
+    res.json(tree.toJS());
   })
   .get("/*", (req, res) => {
     const context = {};
-    const markup = renderToString(
-      <StaticRouter context={context} location={req.url}>
-        <App />
-      </StaticRouter>
-    );
+    // const markup = renderToString(
+    //   <StaticRouter context={context} location={req.url}>
+    //     <App />
+    //   </StaticRouter>
+    // );
+    const markup = "";
 
     if (context.url) {
       res.redirect(context.url);
