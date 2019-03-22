@@ -86,10 +86,10 @@ class App extends React.Component {
           <Text>hash: object</Text>
           <Text>4c2df2: &lt;commit></Text>
           <Appear>
-            <Text textAlign="left">type: $ git hash-object -t &lt;hash></Text>
+            <Text textAlign="left">type: $ git cat-file -t &lt;hash></Text>
           </Appear>
           <Appear>
-            <Text textAlign="left">print: $ git hash-object -p &lt;hash></Text>
+            <Text textAlign="left">print: $ git cat-file -p &lt;hash></Text>
           </Appear>
         </Slide>
         <Slide>

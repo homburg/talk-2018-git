@@ -18,29 +18,47 @@ const execAsync = promisify(exec);
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
+async function updateParts(parts) {
+  if (parts.length === 1) {
+    return [parts[0], ["<root>"]];
+  }
+
+  const [filename, path] = [parts[parts.length - 1], parts.slice(0, -1)];
+  if (filename.length === 38) {
+    try {
+      const type = (await execAsync(
+        `sh -c 'git cat-file -t ${parts.slice(-2).join("")}'`,
+        { cwd: process.env.GIT_EXAMPLE_PROJECT }
+      )).stdout.trim();
+      return [filename + " " + type, path];
+    } catch (ignored) {
+      console.info(ignored);
+    }
+  }
+
+  return [filename, path];
+}
+
 async function makeTree(acc, p, stripPrefix) {
   if (
     /node_modules/.test(p) ||
-    /logs/.test(p) ||
-    /description/.test(p) ||
-    /config/.test(p) ||
-    /COMMIT_EDITMSG/.test(p) ||
-    /ORIG_HEAD/.test(p) ||
-    /hooks/.test(p) ||
-    /info/.test(p)
+    /.git\/logs/.test(p) ||
+    /.git\/description/.test(p) ||
+    /.git\/COMMIT_EDITMSG/.test(p) ||
+    /.git\/ORIG_HEAD/.test(p) ||
+    /.git\/hooks/.test(p) ||
+    /.git\/info/.test(p)
   ) {
     return acc;
   }
+
   const stat = await statAsync(p);
   if (!stat.isDirectory()) {
     try {
       const { stdout } = await execAsync(`sh -c 'git hash-object "${p}"'`);
       const hash = stdout.substring(0, 7);
       const parts = p.slice(stripPrefix.length).split("/");
-      const [filename, up] =
-        parts.length === 1
-          ? [parts[0], ["<root>"]]
-          : [parts[parts.length - 1], parts.slice(0, -1)];
+      const [filename, up] = await updateParts(parts);
 
       return acc.updateIn(
         up,
@@ -51,7 +69,6 @@ async function makeTree(acc, p, stripPrefix) {
       );
     } catch (ignored) {
       console.error(ignored.message);
-      console.log({ acc });
     }
     return acc;
   }
@@ -77,8 +94,8 @@ server
   .get("/api", async (req, res) => {
     const tree = await makeTree(
       new OrderedMap({}),
-      "../../hello-git",
-      "../../hello-git"
+      process.env.GIT_EXAMPLE_PROJECT,
+      process.env.GIT_EXAMPLE_PROJECT
     );
     res.json(tree.toJS());
   })

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useReducer, useMemo } from "react";
 import { isObject } from "lodash";
 import "./Home.css";
 
@@ -85,47 +85,57 @@ function Tree({ tree }) {
   });
 }
 
-class Home extends Component {
-  state = {};
-  componentDidMount() {
-    console.log("Did mount");
-    this.interval = setInterval(this.fetch, 1000);
+function useInterval(callback, intervalMilliseconds) {
+  useEffect(() => {
+    const timer = setInterval(callback, intervalMilliseconds);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+}
+
+const initialHomeState = {};
+
+function homeDataReducer(state, action) {
+  switch (action.type) {
+    case "error":
+      return { ...state, error: action.payload };
+    case "fetched":
+      if (isEqual(state.data, action.data)) {
+        return state;
+      }
+      return { data: action.data, oldData: state.data };
+    default:
+      throw new Error("Unknown action: " + action.type);
   }
-  fetch = () => {
+}
+
+function Home() {
+  const [state, dispatch] = useReducer(homeDataReducer, initialHomeState);
+
+  useInterval(() => {
     fetch("/api")
       .then(x => x.json())
-      .then(data =>
-        this.setState(({ data: oldData }) => {
-          if (isEqual(oldData, data)) {
-            return null;
-          }
+      .then(data => dispatch({ type: "fetched", data }))
+      .catch(error => dispatch({ type: "error", error }));
+  }, 1000);
 
-          const diff = diffObject(oldData, data);
+  const { data, oldData } = state;
+  const diff = useMemo(() => diffObject(oldData, data), [data, oldData]);
 
-          return { data, err: undefined, diff };
-        })
-      )
-      .catch(err => this.setState({ err }));
-  };
-  componentWillUnmount() {
-    clearInterval(this.interval);
-    console.log("Did unmount");
-  }
-  render() {
-    return (
-      <div className="home">
-        <div className="root">
-          {this.state.err && (
-            <div>
-              <h1>Error</h1>
-              <div>{this.state.err}</div>
-            </div>
-          )}
-          <Tree tree={this.state.diff} />
-        </div>
+  return (
+    <div className="home">
+      <div className="root">
+        {state.error && (
+          <div>
+            <h1>Error</h1>
+            <div>{state.error}</div>
+          </div>
+        )}
+        <Tree tree={diff} />
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default Home;
