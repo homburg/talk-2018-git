@@ -25,15 +25,11 @@ async function updateParts(parts) {
 
   const [filename, path] = [parts[parts.length - 1], parts.slice(0, -1)];
   if (filename.length === 38) {
-    try {
-      const type = (await execAsync(
-        `sh -c 'git cat-file -t ${parts.slice(-2).join("")}'`,
-        { cwd: process.env.GIT_EXAMPLE_PROJECT }
-      )).stdout.trim();
-      return [filename + " " + type, path];
-    } catch (ignored) {
-      console.info(ignored);
-    }
+    const type = (await execAsync(
+      `sh -c 'git cat-file -t ${parts.slice(-2).join("")}'`,
+      { cwd: process.env.GIT_EXAMPLE_PROJECT }
+    )).stdout.trim();
+    return [filename + " " + type, path];
   }
 
   return [filename, path];
@@ -52,7 +48,18 @@ async function makeTree(acc, p, stripPrefix) {
     return acc;
   }
 
-  const stat = await statAsync(p);
+  let stat;
+  try {
+    stat = await statAsync(p);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      // Trying to analyze something that has just been deleted
+      return acc;
+    }
+
+    throw error;
+  }
+
   if (!stat.isDirectory()) {
     try {
       const { stdout } = await execAsync(`sh -c 'git hash-object "${p}"'`);
@@ -68,23 +75,17 @@ async function makeTree(acc, p, stripPrefix) {
             : new OrderedMap({ [filename]: hash })
       );
     } catch (ignored) {
-      console.error(ignored.message);
+      // Could not hash leaf/file (probably deleted)
     }
-    return acc;
   }
 
-  try {
-    const files = await readdirAsync(p);
-    const sortedFiles = sortBy(files);
-    let loopAcc = acc;
-    for (let file of sortedFiles) {
-      loopAcc = await makeTree(loopAcc, path.join(p, file), stripPrefix);
-    }
-    return loopAcc;
-  } catch (ignored) {
-    console.error({ ignored });
+  const files = await readdirAsync(p);
+  const sortedFiles = sortBy(files);
+  let loopAcc = acc;
+  for (let file of sortedFiles) {
+    loopAcc = await makeTree(loopAcc, path.join(p, file), stripPrefix);
   }
-  return acc;
+  return loopAcc;
 }
 
 const server = express();
