@@ -14,7 +14,7 @@
     "immutable": "^4.0.0-rc.12",
     "lodash": "^4.17.11",
     "raf": "^3.4.1",
-    "razzle": "^3.0.0",
+    "razzle": "^3.0.0-alpha.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",

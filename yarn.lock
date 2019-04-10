@@ -7674,7 +7674,7 @@ razzle-dev-utils@^3.0.0-alpha.2:
     sockjs-client "1.3.0"
     strip-ansi "5.0.0"
 
-razzle@^3.0.0:
+razzle@^3.0.0-alpha.2:
   version "3.0.0-alpha.2"
   resolved "https://registry.yarnpkg.com/razzle/-/razzle-3.0.0-alpha.2.tgz#3443e4824ec0ca7f09720ce4a32663ef6e19aaec"
   integrity sha512-VNuXrgsDo0HXoXkMv8p6V1F/ymYRFCwhWRTiBjeCVstuaqJ652W6DcLUiFSBEtuHFzN+shzGsSLMaBE0c/fClg==
