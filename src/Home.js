@@ -78,7 +78,12 @@ function Tree({ tree }) {
     const { change, value } = tree[key];
     return (
       <div className={`tree ${change}`} key={key}>
-        <h4>{key}</h4>
+        <h4>
+          {key}
+          {isObject(value) && (
+            <span style={{ opacity: 0.6, marginLeft: "3px" }}>/</span>
+          )}
+        </h4>
         <Tree tree={value} />
       </div>
     );

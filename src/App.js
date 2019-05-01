@@ -7,15 +7,12 @@ import "./App.css";
 import Home from "./Home";
 
 import gitTree from "./git-tree.png";
+import gitMerge from "./git-merge.png";
 
 import {
   Fill,
   Image,
-  Fit,
   Layout,
-  Table,
-  TableRow,
-  Code,
   CodePane,
   Deck,
   Slide,
@@ -23,16 +20,11 @@ import {
   Heading,
   List,
   ListItem,
+  Notes,
   Text
 } from "spectacle";
 
 import createTheme from "spectacle/lib/themes/default";
-
-// const App = () => (
-//   <Switch>
-//     <Route exact path="/" component={Home} />
-//   </Switch>
-// );
 
 const Blob = () => (
   <span role="img" aria-label="blob">
@@ -61,30 +53,51 @@ class App extends React.Component {
       <Deck theme={createTheme({}, { primary: "monospace" })}>
         <Slide>
           <Heading fit={true}>GIT</Heading>
+          <Text>TODO: stash is also just a branch</Text>
+          <Text>
+            stash, commit, ref everything can be used as tree-ish/refspec
+          </Text>
+          <Notes>
+            <ul>
+              <li>Har i nogensinde kigget i .git-mappen?</li>
+              <li>blockchain</li>
+            </ul>
+          </Notes>
+        </Slide>
+        <Slide>
+          <Text>Er en DAG</Text>
+          <Appear>
+            <Text>Er en blockchain*</Text>
+          </Appear>
+          <Appear>
+            <Text>...med forgreninger</Text>
+          </Appear>
+          <Appear>
+            <Text>dvs et Merkle tree</Text>
+          </Appear>
         </Slide>
         <Slide>
           <Heading>Hvad</Heading>
           <List>
             <ListItem>Hvad er git objects</ListItem>
             <ListItem>Hvad er git refs</ListItem>
-            <ListItem>Hvad er et detached head</ListItem>
           </List>
         </Slide>
         <Slide>
-          <Heading>Hvorfor</Heading>
+          <Heading>Hvordan</Heading>
           <List>
-            <ListItem>
-              Hvorfor man næsten altid skal bruge fetch istedet for pull
-            </ListItem>
-            <ListItem>Hvorfor man skal bruge remote refs hele tiden</ListItem>
+            <ListItem>Fungerer git merge</ListItem>
+            <ListItem>Fungerer git rebase</ListItem>
+            <ListItem>Synkroniserer man med remotes</ListItem>
           </List>
         </Slide>
 
         <Slide>
           <Heading fit={true}>.git/objects</Heading>
           <Text>object-database</Text>
-          <Text>hash: object</Text>
-          <Text>4c2df2: &lt;commit></Text>
+          <Text>key => value</Text>
+          <Text>hash => object</Text>
+          <Text>4c2df2 => &lt;commit></Text>
           <Appear>
             <Text textAlign="left">type: $ git cat-file -t &lt;hash></Text>
           </Appear>
@@ -102,9 +115,7 @@ class App extends React.Component {
           <Heading textAlign="left">
             <Commit /> commit
           </Heading>
-          <Heading textAlign="left">
-            <AnnotatedTag /> tag
-          </Heading>
+          <Heading textAlign="left">+1 ...</Heading>
         </Slide>
 
         <Slide>
@@ -117,8 +128,24 @@ class App extends React.Component {
                 <Text>Rå data, typisk fil-indhold</Text>
               </Appear>
               <Appear>
-                <Text>$ git hash-object</Text>
+                <Text>"Leaf" i grafen</Text>
               </Appear>
+              <Appear>
+                <Text>git add</Text>
+              </Appear>
+            </Fill>
+          </Layout>
+        </Slide>
+
+        <Slide>
+          <Heading fit={true}>Demo</Heading>
+          <Text>blob, git init</Text>
+        </Slide>
+
+        <Slide>
+          <Layout>
+            <Fill textAlign="left" bgColor="#333" textSize="10pt">
+              <Home />
             </Fill>
           </Layout>
         </Slide>
@@ -131,7 +158,7 @@ class App extends React.Component {
             <Fill textAlign="left">
               <Text textAlign="left">
                 En enkelt mappe med navne og fil-system-attributter på filer og
-                mapper
+                undermapper
               </Text>
               <Text textAlign="left">Links</Text>
               <List>
@@ -144,6 +171,10 @@ class App extends React.Component {
               </List>
             </Fill>
           </Layout>
+        </Slide>
+
+        <Slide>
+          <Tree /> -> [<Tree /> -> ..., <Blob />]
         </Slide>
 
         <Slide>
@@ -202,6 +233,12 @@ class App extends React.Component {
         </Slide>
 
         <Slide>
+          <Commit /> -> (<Tree /> -> [<Tree /> -> ..., <Blob />]) -> <Commit />{" "}
+          -> ...
+          <Text>git commit -m "Second commit"</Text>
+        </Slide>
+
+        <Slide>
           <Text>git cat-file -p e88c187</Text>
           <CodePane
             textSize="18px"
@@ -215,6 +252,161 @@ velour 1.0.59`}
         </Slide>
 
         <Slide>
+          <Heading>log</Heading>
+          {Array.from({ length: 117 })
+            .fill()
+            .map((x, i) => (
+              <span key={i}>
+                <Commit /> ->{" "}
+              </span>
+            ))}
+          root <Commit />
+        </Slide>
+
+        <Slide>
+          <Heading fit={true}>Demo</Heading>
+          <Text>tree, commit</Text>
+        </Slide>
+
+        <Slide>
+          <Layout>
+            <Fill textAlign="left" bgColor="#333" textSize="10pt">
+              <Home />
+            </Fill>
+          </Layout>
+        </Slide>
+
+        <Slide>
+          <Heading>.git/index ?</Heading>
+          <Appear>
+            <Text>"cache", "index", "staging area"</Text>
+          </Appear>
+        </Slide>
+
+        <Slide>
+          <Heading>refs</Heading>
+          <Text>.git/refs</Text>
+          <Appear>
+            <Text>Fordi mennesker ikke kan huske 98a64844e48...</Text>
+          </Appear>
+          <Appear>
+            <Text>git checkout -b new-branch</Text>
+          </Appear>
+          <Appear>
+            <Text>git checkout old-branch</Text>
+          </Appear>
+        </Slide>
+
+        <Slide>
+          <Heading>head</Heading>
+          {Array.from({ length: 7 })
+            .fill()
+            .map((x, i) => (
+              <Appear order={8 - i} key={i}>
+                <span>
+                  <Commit key={i} /> ->{" "}
+                </span>
+              </Appear>
+            ))}
+        </Slide>
+
+        <Slide>
+          <Heading>.git/HEAD</Heading>
+        </Slide>
+
+        <Slide>
+          <Heading fit={true}>DEMO</Heading>
+          <Text>refs, undermapper</Text>
+        </Slide>
+
+        <Slide>
+          <Layout>
+            <Fill textAlign="left" bgColor="#333" textSize="10pt">
+              <Home />
+            </Fill>
+          </Layout>
+        </Slide>
+
+        <Slide>
+          <Heading>remote</Heading>
+          <Text>git clone git@github.com:tv2/play-frontend-web.git</Text>
+          <Text>---</Text>
+          <Text>
+            git remote add origin git@github.com:tv2/play-frontend-web.git
+          </Text>
+        </Slide>
+
+        <Slide>
+          <Heading fit={true}>Demo</Heading>
+          <Text>fetch, pull, push, tracking</Text>
+        </Slide>
+
+        <Slide>
+          <Layout>
+            <Fill textAlign="left" bgColor="#333" textSize="10pt">
+              <Home />
+            </Fill>
+          </Layout>
+        </Slide>
+
+        <Slide>
+          <Heading>merge</Heading>
+          <Text>tegn det</Text>
+        </Slide>
+
+        <Slide>
+          <Image src={gitMerge} />
+        </Slide>
+
+        <Slide>
+          <Heading>rebase</Heading>
+          <Text>for forfængeligheden</Text>
+          <Appear>
+            <Text>
+              Man kan ikke *omskrive* historien, men man kan skrive en *ny*
+              historie
+            </Text>
+          </Appear>
+        </Slide>
+
+        <Slide>
+          <Heading>rebase</Heading>
+          <Text>for forfængelighed</Text>
+          <Appear>
+            <Text>
+              Man kan ikke *omskrive* historien, men man kan skrive en *ny*
+              historie
+            </Text>
+          </Appear>
+        </Slide>
+
+        <Slide>
+          <Text>git commit --amend -m "Better message"</Text>
+        </Slide>
+
+        <Slide>
+          <Text>git rebase -i HEAD~4</Text>
+        </Slide>
+
+        <Slide>
+          <Text>git pull --rebase</Text>
+        </Slide>
+
+        <Slide>git push --force-with-lease</Slide>
+
+        <Slide>
+          <Heading>GitHub squash merge</Heading>
+          <List>
+            <Text>+ Simple history</Text>
+            <Text>+ Realistic revert</Text>
+            <Text>- git confused</Text>
+            <Text>- branch-branches confused after merge</Text>
+          </List>
+        </Slide>
+
+        <Slide>InteliiJ</Slide>
+
+        <Slide>
           <Heading>
             <AnnotatedTag /> (annotated) tag
           </Heading>
@@ -224,7 +416,7 @@ velour 1.0.59`}
                 Indhold
               </Heading>
               <Text textAlign="left">
-                En reference til et commit med en besked
+                En reference til et commit og en besked
               </Text>
               <Heading size={5} textAlign="left">
                 Links
@@ -244,41 +436,7 @@ velour 1.0.59`}
         </Slide>
 
         <Slide>
-          <Heading>log</Heading>
-          {Array.from({ length: 117 })
-            .fill()
-            .map((x, i) => (
-              <span>
-                <Commit key={i} /> ->{" "}
-              </span>
-            ))}
-        </Slide>
-
-        <Slide>
-          <Heading>refs</Heading>
-          <Text>.git/refs</Text>
-        </Slide>
-
-        <Slide>
-          <Heading>.git/HEAD</Heading>
-        </Slide>
-
-        <Slide>
-          <Heading fit={true}>Demo</Heading>
-        </Slide>
-
-        <Slide>
-          <Layout>
-            <Fill textAlign="left" bgColor="#333" textSize="10pt">
-              <Home />
-            </Fill>
-          </Layout>
-        </Slide>
-
-        <Slide>
-          <Appear>
-            <Heading fit={true}>FIN</Heading>
-          </Appear>
+          <Heading fit={true}>FIN</Heading>
         </Slide>
       </Deck>
     );
